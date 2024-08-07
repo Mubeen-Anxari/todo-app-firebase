@@ -2,6 +2,7 @@
 import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
 import React, { useState, useEffect } from "react";
 import db from "../components/firebaseConfig";
+import { Link } from "react-router-dom";
 
 interface UserData {
   id: string;
@@ -54,8 +55,8 @@ export default function Read() {
         userData.map((user) => (
           <div key={user.id} className="max-w-sm rounded overflow-hidden shadow-lg bg-white m-4">
             <div className="px-6 py-4">
-              <div className="font-bold text-xl mb-2">{user.fName}</div>
-              <p className="text-gray-700 text-base">{user.fEmail}</p>
+              <div className="font-bold text-2xl mb-2">{user.fName}</div>
+              <p className="text-gray-700 text-xl">{user.fEmail}</p>
               <div className="mt-2 gap-2 flex">
                 <button
                   onClick={() => handleDelete(user.id)}
@@ -63,9 +64,10 @@ export default function Read() {
                 >
                   Delete
                 </button>
+                <Link to={`edit/${user.id}`}>
                 <button className="bg-purple-800 text-white p-1 rounded">
                   Edit
-                </button>
+                </button></Link>
               </div>
             </div>
           </div>

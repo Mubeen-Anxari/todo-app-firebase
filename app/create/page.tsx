@@ -1,14 +1,60 @@
 "use client";
-import { addDoc, collection, Timestamp } from "firebase/firestore";
-import React, { useState } from "react";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  Timestamp,
+  updateDoc,
+} from "firebase/firestore";
+import React, { useEffect, useState } from "react";
 import db from "../components/firebaseConfig";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function Create() {
   const [fName, setFName] = useState("");
   const [fEmail, setFEmail] = useState("");
-  const navigate =useNavigate()
+  const [isEdit, setIsEdit] = useState(false);
+  const navigate = useNavigate();
 
+  const { id } = useParams();
+  console.log("id", id);
+  useEffect(() => {
+    if (!id) {
+      setIsEdit(false);
+      setFName(""), setFEmail("");
+    } else {
+      setIsEdit(true);
+      fetchSingalData(id);
+    }
+  }, [id]);
+
+  const fetchSingalData = async (id: string) => {
+    try {
+      const docRef = doc(db, "Todo", id);
+      const docSnap = await getDoc(docRef);
+      const data = docSnap.data();
+      if (data) {
+        setFName(data.fName);
+        setFEmail(data.fEmail);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const handleEdit = async (e: any) => {
+    e.preventDefault();
+    if (!id) return;
+    try {
+      await updateDoc(doc(db, "Todo", id), {
+        fName: fName,
+        fEmail: fEmail,
+      });
+      setFName(""), setFEmail(""), navigate("/");
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     let data = {
@@ -20,12 +66,18 @@ export default function Create() {
     const ref = collection(db, "Todo");
     try {
       await addDoc(ref, data);
-      setFName('')
-      setFEmail('')
-      navigate('/')
+      setFName("");
+      setFEmail("");
+      navigate("/");
     } catch (error) {
-        console.log(error);
-        
+      console.log(error);
+    }
+  };
+  const handleFormSubmit = (e: React.FormEvent) => {
+    if (isEdit) {
+      handleEdit(e);
+    } else {
+      handleSubmit(e);
     }
   };
   return (
@@ -33,9 +85,9 @@ export default function Create() {
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="w-full max-w-md p-8 space-y-4 bg-white rounded-lg shadow-md">
           <h2 className="text-2xl font-bold text-center text-gray-800">
-            Add a card
+            {isEdit ? "Update a card" : "Add a card"}
           </h2>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleFormSubmit}>
             <div>
               <label
                 htmlFor="email"
@@ -66,11 +118,9 @@ export default function Create() {
                 required
               />
             </div>
-            <button
-              type="submit"
-              className="w-full px-4 py-2 mt-4 text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-            >
-              Login
+
+            <button className=" flex justify-center items-center mt-2 bg-blue-700 text-white p-1 rounded ">
+              {isEdit ? "Update " : "Add"}
             </button>
           </form>
         </div>
